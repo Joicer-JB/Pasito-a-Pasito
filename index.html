@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pasito a Pasito</title>
+<style>
+  :root {
+    --bg: #f4f6fb; --card: #ffffff; --ink: #1d2433; --muted: #6b7488;
+    --primary: #2457d6; --primary-dark: #1b44ab; --danger: #c93a3a; --ok: #1f8a4c; --warn: #b9770e;
+    --line: #e2e6ef; --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--ink); }
+  [hidden] { display: none !important; }
+  h1, h2, h3 { margin: 0; }
+  button, a.btn { font: inherit; cursor: pointer; border: 0; border-radius: 8px; padding: 9px 16px; background: var(--primary); color: #fff; text-decoration: none; display: inline-block; }
+  button:hover, a.btn:hover { background: var(--primary-dark); }
+  button.sec, a.btn.sec { background: #e8ecf6; color: var(--ink); }
+  button.sec:hover, a.btn.sec:hover { background: #d9dfef; }
+  button.danger { background: var(--danger); }
+  button.ok, a.btn.ok { background: var(--ok); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  input, select { font: inherit; width: 100%; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+  input[type=checkbox] { width: auto; }
+  input:focus, select:focus { outline: 2px solid #b7c8f5; border-color: var(--primary); }
+  label { display: block; font-size: .85rem; color: var(--muted); margin-bottom: 4px; }
+  .card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: 0 1px 3px rgba(20,30,60,.08); }
+  .muted { color: var(--muted); font-size: .9rem; }
+
+  /* Login */
+  #login { min-height: 100vh; display: grid; place-items: center; padding: 20px; }
+  #login .card { width: 100%; max-width: 380px; display: grid; gap: 14px; }
+  .err { color: var(--danger); font-size: .9rem; min-height: 1.2em; }
+
+  /* App */
+  #app { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+  aside { background: #162246; color: #dbe3fb; padding: 20px 14px; display: flex; flex-direction: column; gap: 6px; }
+  aside h2 { color: #fff; font-size: 1.05rem; padding: 0 8px 14px; line-height: 1.3; }
+  aside .nav { background: transparent; color: #dbe3fb; text-align: left; width: 100%; }
+  aside .nav:hover { background: rgba(255,255,255,.08); }
+  aside .nav.active { background: rgba(255,255,255,.16); color: #fff; }
+  aside .spacer { flex: 1; }
+  main { padding: 24px; display: grid; gap: 18px; align-content: start; min-width: 0; }
+  .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .tasa-box { display: flex; align-items: center; gap: 10px; background: var(--card); padding: 8px 14px; border-radius: var(--radius); box-shadow: 0 1px 3px rgba(20,30,60,.08); }
+  .tasa-box strong { font-size: 1.1rem; color: var(--primary); }
+  .tasa-box small { color: var(--muted); }
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .toolbar input[type=search], .toolbar input[type=month] { max-width: 260px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); font-size: .93rem; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: .8rem; text-transform: uppercase; letter-spacing: .03em; }
+  td.num, th.num { text-align: right; white-space: nowrap; }
+  td.nw { white-space: nowrap; }
+  td .bs { display: block; color: var(--muted); font-size: .8rem; }
+  .table-wrap { overflow-x: auto; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  .stat .v { font-size: 1.5rem; font-weight: 700; margin-top: 4px; }
+  .stat .l { color: var(--muted); font-size: .85rem; }
+  .stat .s { color: var(--muted); font-size: .85rem; margin-top: 2px; }
+  .stat.good .v { color: var(--ok); }
+  .stat.bad .v { color: var(--danger); }
+  .empty { text-align: center; color: var(--muted); padding: 28px 0; }
+  .row-actions { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+  .row-actions button, .row-actions a.btn { padding: 5px 10px; font-size: .85rem; }
+  .tag { display: inline-block; font-size: .75rem; padding: 2px 8px; border-radius: 999px; background: #e8ecf6; color: var(--ink); }
+  .tag.bad { background: #fbe3e3; color: var(--danger); }
+  .tag.ok { background: #dff3e8; color: var(--ok); }
+  tr.anulado td { color: var(--muted); text-decoration: line-through; }
+  tr.anulado td:last-child { text-decoration: none; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .section-title { font-size: 1rem; margin-bottom: 8px; }
+
+  /* Modal */
+  .modal { position: fixed; inset: 0; background: rgba(15,22,45,.5); display: grid; place-items: center; padding: 16px; z-index: 10; }
+  .modal .card { width: 100%; max-width: 560px; max-height: 92vh; overflow: auto; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form { display: grid; gap: 12px; margin-top: 14px; }
+  .actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px; flex-wrap: wrap; }
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #162246; color: #fff; padding: 10px 18px; border-radius: 10px; z-index: 30; max-width: 90vw; }
+  .items { display: grid; gap: 8px; }
+  .item { display: grid; grid-template-columns: auto 1fr 110px; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; }
+  .item.venc { border-color: #f0c4c4; background: #fff8f8; }
+  .totalbar { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 12px; background: #eef2fc; border-radius: 8px; font-weight: 600; }
+
+  /* Recibo */
+  #reciboBox { font-size: .95rem; }
+  #reciboBox h3 { text-align: center; font-size: 1.2rem; }
+  #reciboBox .sub { text-align: center; color: var(--muted); margin-bottom: 12px; }
+  #reciboBox .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; margin: 12px 0; }
+  #reciboBox table th, #reciboBox table td { padding: 6px 4px; }
+  #reciboBox .tot td { font-weight: 700; border-top: 2px solid var(--ink); }
+
+  @media (max-width: 760px) {
+    #app { grid-template-columns: 1fr; }
+    aside { flex-direction: row; flex-wrap: wrap; align-items: center; padding: 10px; }
+    aside h2 { width: 100%; padding-bottom: 4px; }
+    aside .spacer { display: none; }
+    aside .nav { width: auto; }
+    .grid2, .two-col { grid-template-columns: 1fr; }
+    main { padding: 14px; }
+  }
+
+  @media print {
+    aside, .topbar, .no-print, .toast { display: none !important; }
+    body { background: #fff; }
+    #app { display: block; }
+    main { padding: 0; }
+    .card { box-shadow: none; padding: 0; }
+    body.print-recibo #app, body.print-recibo .modal:not(#modalRecibo) { display: none !important; }
+    body.print-recibo #modalRecibo { position: static; background: none; padding: 0; display: block; }
+    body.print-recibo #modalRecibo .card { max-width: none; max-height: none; overflow: visible; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<section id="login">
+  <form class="card" id="loginForm">
+    <h1>Pasito a Pasito</h1>
+    <p style="margin:0;color:var(--muted)">Control financiero · Inicia sesión para continuar</p>
+    <div><label for="lEmail">Correo</label><input id="lEmail" type="email" autocomplete="username" required></div>
+    <div><label for="lPass">Contraseña</label><input id="lPass" type="password" autocomplete="current-password" required></div>
+    <div class="err" id="lErr"></div>
+    <button type="submit">Entrar</button>
+  </form>
+</section>
+
+<!-- ============ APP ============ -->
+<div id="app" hidden>
+  <aside>
+    <h2 id="schoolName">Pasito a Pasito</h2>
+    <button class="nav active" data-view="inicio">Inicio</button>
+    <button class="nav" data-view="estudiantes">Estudiantes</button>
+    <button class="nav" data-view="cobros">Cobros</button>
+    <button class="nav" data-view="pendientes">Pendientes</button>
+    <button class="nav" data-view="gastos">Gastos</button>
+    <button class="nav" data-view="reportes">Reportes</button>
+    <button class="nav" data-view="config">Configuración</button>
+    <div class="spacer"></div>
+    <button class="nav" id="btnSalir">Cerrar sesión</button>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <h1 id="viewTitle">Inicio</h1>
+      <div class="tasa-box">
+        <div><small>Tasa BCV</small><br><strong id="tasaTxt">sin definir</strong> <small id="tasaFecha"></small></div>
+        <button class="sec" id="btnTasa">Actualizar</button>
+      </div>
+    </div>
+
+    <!-- Inicio -->
+    <section id="view-inicio">
+      <div class="stats">
+        <div class="card stat"><div class="l">Estudiantes activos</div><div class="v" id="stEst">0</div></div>
+        <div class="card stat"><div class="l">Ingresos del mes</div><div class="v" id="stIngBs">Bs. 0,00</div><div class="s" id="stIngUsd">$0.00 ref.</div></div>
+        <div class="card stat"><div class="l">Gastos del mes</div><div class="v" id="stGasBs">Bs. 0,00</div><div class="s" id="stGasUsd">$0.00 ref.</div></div>
+        <div class="card stat" id="stSaldoCard"><div class="l">Saldo del mes</div><div class="v" id="stSaldoBs">Bs. 0,00</div><div class="s" id="stSaldoUsd">$0.00 ref.</div></div>
+        <div class="card stat"><div class="l">Por cobrar (a hoy)</div><div class="v" id="stPorCobrar">$0.00</div><div class="s" id="stPorCobrarBs"></div></div>
+      </div>
+      <p class="muted" id="avisoTasa" hidden>Define la tasa BCV del día (botón "Actualizar", arriba a la derecha) para ver los montos en bolívares.</p>
+    </section>
+
+    <!-- Estudiantes -->
+    <section id="view-estudiantes" hidden>
+      <div class="card" style="display:grid;gap:14px">
+        <div class="toolbar">
+          <input id="buscar" type="search" placeholder="Buscar por nombre o cédula">
+          <button id="btnNuevoEst">+ Nuevo estudiante</button>
+          <label style="display:flex;gap:6px;align-items:center;margin:0"><input id="verInactivos" type="checkbox"> Ver quitados</label>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Estudiante</th><th>Grado</th><th>Representante</th><th class="num">Mensualidad</th><th></th></tr></thead>
+            <tbody id="tbodyEst"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cobros -->
+    <section id="view-cobros" hidden>
+      <div class="card" style="display:grid;gap:14px">
+        <div class="toolbar">
+          <button id="btnNuevoCobro">+ Nuevo cobro</button>
+          <input id="cobMes" type="month" aria-label="Mes">
+          <input id="cobBuscar" type="search" placeholder="Buscar estudiante o recibo">
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Recibo</th><th>Fecha</th><th>Estudiante</th><th>Concepto</th><th>Método</th><th class="num">Monto</th><th></th></tr></thead>
+            <tbody id="tbodyCob"></tbody>
+          </table>
+        </div>
+        <div class="muted" id="cobTotales"></div>
+      </div>
+    </section>
+
+    <!-- Pendientes -->
+    <section id="view-pendientes" hidden>
+      <div class="card" style="display:grid;gap:14px">
+        <div class="toolbar">
+          <input id="penBuscar" type="search" placeholder="Buscar estudiante o representante">
+          <span class="muted" id="penResumen"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Estudiante</th><th>Representante</th><th>Meses</th><th class="num">Recargo</th><th class="num">Total</th><th></th></tr></thead>
+            <tbody id="tbodyPen"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Gastos -->
+    <section id="view-gastos" hidden>
+      <div class="card" style="display:grid;gap:14px">
+        <div class="toolbar">
+          <button id="btnNuevoGasto">+ Nuevo gasto</button>
+          <input id="gasMes" type="month" aria-label="Mes">
+          <input id="gasBuscar" type="search" placeholder="Buscar descripción, proveedor o categoría">
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th>Método</th><th class="num">Monto</th><th></th></tr></thead>
+            <tbody id="tbodyGas"></tbody>
+          </table>
+        </div>
+        <div class="muted" id="gasTotales"></div>
+      </div>
+    </section>
+
+    <!-- Reportes -->
+    <section id="view-reportes" hidden>
+      <div style="display:grid;gap:14px">
+        <div class="card toolbar no-print">
+          <input id="repMes" type="month" aria-label="Mes del reporte">
+          <button id="btnCsv" class="sec">Exportar CSV (contador)</button>
+          <button id="btnCsvAnio" class="sec">Exportar año escolar (CSV)</button>
+          <button id="btnImprimirRep" class="sec">Imprimir</button>
+        </div>
+        <div class="stats">
+          <div class="card stat"><div class="l">Ingresos</div><div class="v" id="rIngBs">Bs. 0,00</div><div class="s" id="rIngUsd"></div></div>
+          <div class="card stat"><div class="l">Egresos</div><div class="v" id="rEgrBs">Bs. 0,00</div><div class="s" id="rEgrUsd"></div></div>
+          <div class="card stat" id="rSaldoCard"><div class="l">Saldo (flujo de caja)</div><div class="v" id="rSaldoBs">Bs. 0,00</div><div class="s" id="rSaldoUsd"></div></div>
+        </div>
+        <div class="two-col">
+          <div class="card"><h3 class="section-title">Ingresos por método</h3>
+            <table><thead><tr><th>Método</th><th class="num">Ref. $</th><th class="num">Bs.</th></tr></thead><tbody id="tbodyRepMet"></tbody></table></div>
+          <div class="card"><h3 class="section-title">Egresos por categoría</h3>
+            <table><thead><tr><th>Categoría</th><th class="num">Ref. $</th><th class="num">Bs.</th></tr></thead><tbody id="tbodyRepCat"></tbody></table></div>
+        </div>
+        <div class="card"><h3 class="section-title">Resumen del año escolar</h3>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Mes</th><th class="num">Ingresos Bs.</th><th class="num">Ingresos ref. $</th><th class="num">Egresos Bs.</th><th class="num">Egresos ref. $</th><th class="num">Saldo Bs.</th></tr></thead>
+            <tbody id="tbodyRepAnio"></tbody></table></div></div>
+        <div class="card"><h3 class="section-title">Movimientos del mes</h3>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Fecha</th><th>Tipo</th><th>Detalle</th><th>Método</th><th class="num">Ref. $</th><th class="num">Bs.</th></tr></thead>
+            <tbody id="tbodyRepMov"></tbody></table></div></div>
+      </div>
+    </section>
+
+    <!-- Configuración -->
+    <section id="view-config" hidden>
+      <form class="card" id="formConfig" style="max-width:560px">
+        <h3>Datos de la escuela y cobranza</h3>
+        <div class="form">
+          <div><label for="cfgNombre">Nombre de la escuela</label><input id="cfgNombre" required></div>
+          <div class="grid2">
+            <div><label for="cfgInicio">Primer mes de cobro del año escolar</label><input id="cfgInicio" type="month" required></div>
+            <div><label for="cfgFin">Último mes de cobro</label><input id="cfgFin" type="month" required></div>
+          </div>
+          <div><label for="cfgDia">Día límite de pago de cada mes (1–28)</label><input id="cfgDia" type="number" min="1" max="28" required></div>
+          <div class="grid2">
+            <div><label style="display:flex;gap:8px;align-items:center;margin-top:22px"><input id="cfgRecActivo" type="checkbox"> Cobrar recargo por mora</label></div>
+            <div><label for="cfgRecUsd">Recargo por mes vencido (ref. $)</label><input id="cfgRecUsd" type="number" min="0" step="0.01"></div>
+          </div>
+          <p class="muted" style="margin:0">El recargo se aplica a cada mes vencido que siga sin pagarse; si la mensualidad se paga completa, el recargo de ese mes deja de aparecer.</p>
+          <div class="actions"><button type="submit">Guardar configuración</button></div>
+        </div>
+      </form>
+      <div class="card" style="max-width:560px;margin-top:14px;display:grid;gap:12px">
+        <h3>Año escolar y respaldo</h3>
+        <p class="muted" style="margin:0"><strong>Nuevo año escolar:</strong> pasa el período al año siguiente. Se conserva todo el historial y los mismos estudiantes; los cobros empiezan de cero y lo que quedó sin cobrar se guarda en el archivo del año.</p>
+        <div><button id="btnNuevoAnio" class="danger">Cerrar año e iniciar el siguiente</button></div>
+        <p class="muted" style="margin:0"><strong>Respaldo:</strong> descarga una copia de todos los datos (estudiantes, pagos, gastos, tasas y configuración).</p>
+        <div><button id="btnRespaldo" class="sec">Descargar respaldo (JSON)</button></div>
+        <h3 class="section-title" style="margin-top:6px">Años cerrados</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Período</th><th>Cerrado</th><th class="num">Ingresos $</th><th class="num">Egresos $</th><th class="num">Sin cobrar $</th></tr></thead>
+          <tbody id="tbodyAnios"></tbody></table></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ============ MODAL: ESTUDIANTE ============ -->
+<div class="modal" id="modalEst" hidden>
+  <form class="card" id="formEst">
+    <h3 id="modalEstTitulo">Nuevo estudiante</h3>
+    <div class="form">
+      <div class="grid2">
+        <div><label for="eNombre">Nombre completo</label><input id="eNombre" required></div>
+        <div><label for="eCedula">Cédula / Cédula escolar</label><input id="eCedula"></div>
+      </div>
+      <div class="grid2">
+        <div><label for="eGrado">Grado / Año</label><input id="eGrado" list="grados" required></div>
+        <div><label for="eMensual">Mensualidad (ref. $)</label><input id="eMensual" type="number" min="0" step="0.01" required></div>
+      </div>
+      <div class="grid2">
+        <div><label for="eRep">Representante</label><input id="eRep" required></div>
+        <div><label for="eTel">Teléfono del representante</label><input id="eTel" type="tel"></div>
+      </div>
+      <div><label for="eDesde">Primer mes que se le cobra (si ingresó después del inicio, cámbialo)</label><input id="eDesde" type="month" required></div>
+      <div id="wrapAplica" hidden><label for="eAplica">La nueva mensualidad aplica desde el mes (los meses anteriores conservan su precio)</label><input id="eAplica" type="month"></div>
+      <div class="actions">
+        <button type="button" class="sec" data-close>Cancelar</button>
+        <button type="submit">Guardar</button>
+      </div>
+    </div>
+  </form>
+</div>
+<datalist id="grados">
+  <option>Inicial</option><option>Preescolar</option>
+  <option>1er Grado</option><option>2do Grado</option><option>3er Grado</option>
+  <option>4to Grado</option><option>5to Grado</option><option>6to Grado</option>
+  <option>1er Año</option><option>2do Año</option><option>3er Año</option>
+  <option>4to Año</option><option>5to Año</option>
+</datalist>
+
+<!-- ============ MODAL: TASA ============ -->
+<div class="modal" id="modalTasa" hidden>
+  <form class="card" id="formTasa">
+    <h3>Tasa BCV del día</h3>
+    <div class="form">
+      <div><label for="tValor">Bolívares por 1 dólar</label><input id="tValor" type="number" min="0" step="0.0001" required></div>
+      <div><label for="tFecha">Fecha</label><input id="tFecha" type="date" required></div>
+      <div class="actions">
+        <button type="button" class="sec" data-close>Cancelar</button>
+        <button type="submit">Guardar tasa</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- ============ MODAL: COBRO ============ -->
+<div class="modal" id="modalCobro" hidden>
+  <form class="card" id="formCobro">
+    <h3>Nuevo cobro</h3>
+    <div class="form">
+      <div>
+        <label for="cEstInput">Estudiante (escribe nombre o cédula y elige)</label>
+        <input id="cEstInput" list="cEstList" autocomplete="off" required>
+        <datalist id="cEstList"></datalist>
+      </div>
+      <div id="cobroPend" hidden>
+        <label>Pendientes del estudiante</label>
+        <div class="items" id="cItems"></div>
+      </div>
+      <div class="grid2">
+        <div><label for="cOtroTxt">Otro concepto (opcional)</label><input id="cOtroTxt" placeholder="Ej.: Inscripción, uniforme…"></div>
+        <div><label for="cOtroMonto">Monto (ref. $)</label><input id="cOtroMonto" type="number" min="0" step="0.01"></div>
+      </div>
+      <div class="grid2">
+        <div><label for="cFecha">Fecha</label><input id="cFecha" type="date" required></div>
+        <div><label for="cTasa">Tasa BCV aplicada</label><input id="cTasa" type="number" min="0" step="0.0001" required></div>
+      </div>
+      <div class="grid2">
+        <div><label for="cMetodo">Método de pago</label>
+          <select id="cMetodo">
+            <option>Efectivo ($)</option><option>Efectivo (Bs.)</option><option>Punto de venta</option>
+            <option>Pago móvil</option><option>Transferencia</option><option>Otro</option>
+          </select></div>
+        <div><label for="cRef">Referencia (opcional)</label><input id="cRef"></div>
+      </div>
+      <div class="totalbar"><span>Total a cobrar</span><span><span id="cTotUsd">$0.00</span> · <span id="cTotBs">Bs. 0,00</span></span></div>
+      <div class="actions">
+        <button type="button" class="sec" data-close>Cancelar</button>
+        <button type="submit" id="btnGuardarCobro">Cobrar y ver recibo</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- ============ MODAL: GASTO ============ -->
+<div class="modal" id="modalGasto" hidden>
+  <form class="card" id="formGasto">
+    <h3 id="modalGastoTitulo">Nuevo gasto</h3>
+    <div class="form">
+      <div class="grid2">
+        <div><label for="gFecha">Fecha</label><input id="gFecha" type="date" required></div>
+        <div><label for="gCat">Categoría</label><input id="gCat" list="categorias" required></div>
+      </div>
+      <div><label for="gDesc">Descripción</label><input id="gDesc" required></div>
+      <div class="grid2">
+        <div><label for="gProv">Proveedor (opcional)</label><input id="gProv"></div>
+        <div><label for="gMetodo">Método de pago</label>
+          <select id="gMetodo">
+            <option>Efectivo ($)</option><option>Efectivo (Bs.)</option><option>Punto de venta</option>
+            <option>Pago móvil</option><option>Transferencia</option><option>Otro</option>
+          </select></div>
+      </div>
+      <div class="grid2">
+        <div><label for="gMonto">Monto</label><input id="gMonto" type="number" min="0" step="0.01" required></div>
+        <div><label for="gMoneda">Moneda del monto</label>
+          <select id="gMoneda"><option value="USD">Dólares ($)</option><option value="VES">Bolívares (Bs.)</option></select></div>
+      </div>
+      <div><label for="gTasa">Tasa BCV aplicada</label><input id="gTasa" type="number" min="0" step="0.0001" required></div>
+      <div class="totalbar"><span>Equivale a</span><span><span id="gEqUsd">$0.00</span> · <span id="gEqBs">Bs. 0,00</span></span></div>
+      <div class="actions">
+        <button type="button" class="sec" data-close>Cancelar</button>
+        <button type="submit">Guardar gasto</button>
+      </div>
+    </div>
+  </form>
+</div>
+<datalist id="categorias">
+  <option>Nómina</option><option>Servicios (luz, agua, internet)</option><option>Mantenimiento</option>
+  <option>Materiales y papelería</option><option>Alquiler</option><option>Impuestos y trámites</option><option>Otros</option>
+</datalist>
+
+<!-- ============ MODAL: RECIBO ============ -->
+<div class="modal" id="modalRecibo" hidden>
+  <div class="card">
+    <div id="reciboBox"></div>
+    <div class="actions no-print">
+      <button type="button" class="sec" data-close>Cerrar</button>
+      <button type="button" id="btnImprimirRecibo" class="sec">Imprimir</button>
+      <button type="button" id="btnSiguiente" class="ok" hidden>Siguiente cobro</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+/* ================================================================
+   1) CONFIGURACIÓN DE FIREBASE
+   Pega aquí los datos de tu proyecto (Firebase Console →
+   Configuración del proyecto → Tus apps → Configuración SDK).
+   ================================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyB-xTKOxOlwufuPoooqXZ561FnYoyY-0MQ",
+  authDomain: "pasito-a-pasito-cf4b7.firebaseapp.com",
+  projectId: "pasito-a-pasito-cf4b7",
+  storageBucket: "pasito-a-pasito-cf4b7.firebasestorage.app",
+  messagingSenderId: "331604335409",
+  appId: "1:331604335409:web:14ace667be9cd11cc4ae10",
+  measurementId: "G-BPQXLGMP7N"
+};
+
+/* Nombre por defecto (luego se cambia en Configuración). */
+const NOMBRE_ESCUELA = "Pasito a Pasito";
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, doc, addDoc, setDoc, updateDoc,
+         onSnapshot, query, orderBy, writeBatch, runTransaction, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+/* ================================================================
+   2) UTILIDADES
+   ================================================================ */
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
+const fmtUsd = (n) => "$" + Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtBs  = (n) => "Bs. " + Number(n || 0).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const hoy = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10); };
+const mesActual = () => hoy().slice(0,7);
+const pad2 = (n) => String(n).padStart(2, "0");
+
+function toast(msg) {
+  document.querySelectorAll(".toast").forEach(x => x.remove());   // un solo aviso a la vez
+  const t = document.createElement("div");
+  t.className = "toast"; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+/** Lista de meses 'YYYY-MM' desde `desde` hasta `hasta`, ambos incluidos. */
+function mesesEntre(desde, hasta) {
+  const out = [];
+  let [y, m] = desde.split("-").map(Number);
+  const [yh, mh] = hasta.split("-").map(Number);
+  while ((y < yh || (y === yh && m <= mh)) && out.length < 240) {
+    out.push(`${y}-${pad2(m)}`);
+    m++; if (m > 12) { m = 1; y++; }
+  }
+  return out;
+}
+function nombreMes(per) {
+  const [y, m] = per.split("-").map(Number);
+  return new Date(y, m - 1, 1).toLocaleDateString("es-VE", { month: "long", year: "numeric" });
+}
+/** Teléfono → formato internacional para WhatsApp (Venezuela por defecto). */
+function normTel(t) {
+  let d = String(t || "").replace(/\D/g, "");
+  if (!d) return "";
+  if (d.startsWith("00")) d = d.slice(2);
+  if (d.startsWith("0")) d = "58" + d.slice(1);
+  else if (d.length === 10) d = "58" + d;
+  return d;
+}
+const labelEst = (e) => `${e.nombre} · ${e.cedula || e.grado || ""}`;
+const activos = () => estudiantes.filter(e => e.activo !== false);
+
+/* ================================================================
+   3) ESTADO
+   ================================================================ */
+let estudiantes = [];   // en tiempo real
+let pagos = [];         // ingresos
+let gastos = [];        // egresos
+let tasas = [];         // historial, la más reciente primero
+let anios = [];         // años escolares cerrados
+let config = {};        // config/general
+let unsubs = [];
+let editandoId = null;
+let gastoEditId = null;
+let mensualOrig = null;
+
+const tasaVigente = () => (tasas[0] ? Number(tasas[0].valor) || 0 : 0);
+/** Tasa que corresponde a una fecha (la última registrada hasta ese día). */
+function tasaPara(fecha) {
+  const t = tasas.find(x => x.fecha <= fecha) || tasas[0];
+  return t ? Number(t.valor) || 0 : 0;
+}
+function anioDefault() {
+  const h = hoy(); const y = +h.slice(0,4), m = +h.slice(5,7);
+  const y0 = m >= 9 ? y : y - 1;
+  return { inicio: `${y0}-09`, fin: `${y0 + 1}-07` };
+}
+function cfg() {
+  const d = anioDefault();
+  return {
+    nombre: config.nombre || NOMBRE_ESCUELA,
+    inicio: config.inicio || d.inicio,
+    fin: config.fin || d.fin,
+    diaLimite: Math.min(28, Math.max(1, Number(config.diaLimite) || 5)),
+    recargoActivo: !!config.recargoActivo,
+    recargoUsd: Number(config.recargoUsd) || 0
+  };
+}
+
+/* ================================================================
+   4) LÓGICA DE COBRANZA
+   ================================================================ */
+/** Suma pagada por estudiante|concepto|periodo (sin anulados). */
+function indicePagos() {
+  const idx = {};
+  for (const p of pagos) {
+    if (p.anulado) continue;
+    const k = `${p.estudianteId}|${p.concepto}|${p.periodo || ""}`;
+    idx[k] = round2((idx[k] || 0) + (Number(p.montoUsd) || 0));
+  }
+  return idx;
+}
+
+/** Mensualidad que corresponde a un mes: respeta los cambios de tarifa sin alterar el pasado. */
+function tarifaMes(est, per) {
+  const t = Array.isArray(est.tarifas) ? est.tarifas : [];
+  let m = t.length ? Number(t[0].monto) : Number(est.mensualidad);
+  for (const x of t) if (x.desde <= per) m = Number(x.monto);
+  return Number(m) || 0;
+}
+
+/** Mensualidades (y recargos) pendientes de un estudiante a la fecha dada. */
+function calcPendientes(est, idx, hoyStr = hoy()) {
+  const c = cfg();
+  const desde = est.desde && est.desde > c.inicio ? est.desde : c.inicio;
+  let hasta = hoyStr.slice(0, 7);
+  if (hasta > c.fin) hasta = c.fin;
+  const items = [];
+  for (const per of mesesEntre(desde, hasta)) {
+    const esperado = tarifaMes(est, per);
+    const pagado = idx[`${est.id}|Mensualidad|${per}`] || 0;
+    const pend = round2(esperado - pagado);
+    const vencido = hoyStr > `${per}-${pad2(c.diaLimite)}`;
+    if (pend > 0.009) {
+      items.push({ concepto: "Mensualidad", periodo: per, detalle: `Mensualidad ${nombreMes(per)}`, pendiente: pend, vencido });
+      if (c.recargoActivo && c.recargoUsd > 0 && vencido) {
+        const rp = round2(c.recargoUsd - (idx[`${est.id}|Recargo por mora|${per}`] || 0));
+        if (rp > 0.009) items.push({ concepto: "Recargo por mora", periodo: per, detalle: `Recargo por mora ${nombreMes(per)}`, pendiente: rp, vencido: true });
+      }
+    }
+  }
+  return { items, total: round2(items.reduce((s, i) => s + i.pendiente, 0)) };
+}
+
+/* ================================================================
+   5) SESIÓN
+   ================================================================ */
+$("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  $("lErr").textContent = "";
+  try {
+    await signInWithEmailAndPassword(auth, $("lEmail").value.trim(), $("lPass").value);
+  } catch (err) {
+    $("lErr").textContent = "Correo o contraseña incorrectos.";
+  }
+});
+$("btnSalir").addEventListener("click", () => signOut(auth));
+
+onAuthStateChanged(auth, (user) => {
+  unsubs.forEach(u => u()); unsubs = [];
+  if (user) {
+    $("login").hidden = true; $("app").hidden = false;
+    iniciarDatos();
+  } else {
+    $("login").hidden = false; $("app").hidden = true;
+    estudiantes = []; pagos = []; gastos = []; tasas = []; anios = []; config = {};
+  }
+});
+
+function escuchar(ref, alDatos) {
+  unsubs.push(onSnapshot(ref, alDatos, (err) => toast("Error de lectura: " + (err.code || err.message))));
+}
+function iniciarDatos() {
+  escuchar(doc(db, "config", "general"), (snap) => {
+    config = snap.exists() ? snap.data() : {};
+    renderTodo();
+  });
+  escuchar(query(collection(db, "tasas"), orderBy("fecha", "desc")), (snap) => {
+    tasas = snap.docs.map(d => d.data());
+    renderTodo();
+  });
+  escuchar(query(collection(db, "estudiantes"), orderBy("nombre")), (snap) => {
+    estudiantes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderTodo();
+  });
+  escuchar(query(collection(db, "pagos"), orderBy("fecha", "desc")), (snap) => {
+    pagos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderTodo();
+  });
+  escuchar(query(collection(db, "gastos"), orderBy("fecha", "desc")), (snap) => {
+    gastos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderTodo();
+  });
+  escuchar(query(collection(db, "anios"), orderBy("inicio", "desc")), (snap) => {
+    anios = snap.docs.map(d => d.data());
+    renderTodo();
+  });
+}
+
+/* ================================================================
+   6) NAVEGACIÓN Y MODALES
+   ================================================================ */
+const titulos = { inicio: "Inicio", estudiantes: "Estudiantes", cobros: "Cobros", pendientes: "Pendientes de pago",
+                  gastos: "Gastos", reportes: "Reportes", config: "Configuración" };
+function irA(v) {
+  document.querySelectorAll("aside .nav[data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === v));
+  document.querySelectorAll("main section").forEach(s => s.hidden = (s.id !== "view-" + v));
+  $("viewTitle").textContent = titulos[v] || v;
+  if (v === "config") llenarConfig();
+}
+document.querySelectorAll("aside .nav[data-view]").forEach(btn => btn.addEventListener("click", () => irA(btn.dataset.view)));
+
+const cerrarModales = () => document.querySelectorAll(".modal").forEach(m => m.hidden = true);
+document.addEventListener("click", (e) => { if (e.target.closest("[data-close]")) cerrarModales(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") cerrarModales(); });
+
+$("cobMes").value = $("gasMes").value = $("repMes").value = mesActual();
+
+/* ================================================================
+   7) RENDER
+   ================================================================ */
+function renderTodo() {
+  $("schoolName").textContent = cfg().nombre;
+  document.title = cfg().nombre;
+  const t = tasaVigente();
+  $("tasaTxt").textContent = t ? fmtBs(t) : "sin definir";
+  $("tasaFecha").textContent = tasas[0] ? "(" + tasas[0].fecha + ")" : "";
+  renderInicio(); renderEstudiantes(); renderCobros(); renderPendientes(); renderGastos(); renderReportes();
+  renderResumenAnio(); renderAnios();
+}
+
+const sumar = (arr, k) => round2(arr.reduce((s, x) => s + (Number(x[k]) || 0), 0));
+const delMes = (arr, mes) => arr.filter(x => !x.anulado && (x.fecha || "").startsWith(mes));
+
+function renderInicio() {
+  const mes = mesActual();
+  const ing = delMes(pagos, mes), egr = delMes(gastos, mes);
+  const iBs = sumar(ing, "montoBs"), iUsd = sumar(ing, "montoUsd");
+  const gBs = sumar(egr, "montoBs"), gUsd = sumar(egr, "montoUsd");
+  $("stEst").textContent = activos().length;
+  $("stIngBs").textContent = fmtBs(iBs);  $("stIngUsd").textContent = fmtUsd(iUsd) + " ref.";
+  $("stGasBs").textContent = fmtBs(gBs);  $("stGasUsd").textContent = fmtUsd(gUsd) + " ref.";
+  $("stSaldoBs").textContent = fmtBs(iBs - gBs);  $("stSaldoUsd").textContent = fmtUsd(iUsd - gUsd) + " ref.";
+  $("stSaldoCard").classList.toggle("good", iBs - gBs >= 0);
+  $("stSaldoCard").classList.toggle("bad", iBs - gBs < 0);
+  const idx = indicePagos();
+  const porCobrar = round2(activos().reduce((s, e) => s + calcPendientes(e, idx).total, 0));
+  const t = tasaVigente();
+  $("stPorCobrar").textContent = fmtUsd(porCobrar);
+  $("stPorCobrarBs").textContent = t ? fmtBs(porCobrar * t) + " a la tasa de hoy" : "";
+  $("avisoTasa").hidden = !!t;
+}
+
+function renderEstudiantes() {
+  const q = $("buscar").value.trim().toLowerCase();
+  const t = tasaVigente();
+  const base = $("verInactivos").checked ? estudiantes.filter(e => e.activo === false) : activos();
+  const lista = base.filter(e => !q || (e.nombre || "").toLowerCase().includes(q) || (e.cedula || "").toLowerCase().includes(q));
+  $("tbodyEst").innerHTML = lista.length ? lista.map(e => `
+    <tr>
+      <td><strong>${esc(e.nombre)}</strong><span class="bs">${esc(e.cedula || "")}</span></td>
+      <td>${esc(e.grado)}</td>
+      <td>${esc(e.representante)}<span class="bs">${esc(e.telefono || "")}</span></td>
+      <td class="num">${fmtUsd(e.mensualidad)}<span class="bs">${t ? fmtBs(e.mensualidad * t) : ""}</span></td>
+      <td><div class="row-actions">
+        ${e.activo === false ? `<button class="ok" data-reactivar="${esc(e.id)}">Reactivar</button>` : `
+        <button class="ok" data-cobrar="${esc(e.id)}">Cobrar</button>
+        <button class="sec" data-estado="${esc(e.id)}">Estado</button>
+        <button class="sec" data-edit="${esc(e.id)}">Editar</button>
+        <button class="danger" data-del="${esc(e.id)}">Quitar</button>`}
+      </div></td>
+    </tr>`).join("")
+    : `<tr><td colspan="5" class="empty">${estudiantes.length ? "Sin resultados" : "Aún no hay estudiantes registrados"}</td></tr>`;
+}
+
+function renderCobros() {
+  const mes = $("cobMes").value, q = $("cobBuscar").value.trim().toLowerCase();
+  const lista = pagos
+    .filter(p => (!mes || (p.fecha || "").startsWith(mes)) &&
+                 (!q || (p.estudianteNombre || "").toLowerCase().includes(q) || String(p.reciboNro) === q))
+    .sort((a, b) => (b.fecha || "").localeCompare(a.fecha || "") || (b.reciboNro || 0) - (a.reciboNro || 0));
+  $("tbodyCob").innerHTML = lista.length ? lista.map(p => `
+    <tr class="${p.anulado ? "anulado" : ""}">
+      <td>#${esc(String(p.reciboNro ?? "").padStart(6, "0"))}</td>
+      <td class="nw">${esc(p.fecha)}</td>
+      <td>${esc(p.estudianteNombre)}<span class="bs">${esc(p.grado || "")}</span></td>
+      <td>${esc(p.detalle || p.concepto)}</td>
+      <td>${esc(p.metodo)}<span class="bs">${esc(p.referencia || "")}</span></td>
+      <td class="num">${fmtUsd(p.montoUsd)}<span class="bs">${fmtBs(p.montoBs)}</span></td>
+      <td><div class="row-actions">${p.anulado ? '<span class="tag bad">Anulado</span>' :
+        `<button class="sec" data-recibo="${esc(p.reciboNro)}">Recibo</button><button class="danger" data-anular-pago="${esc(p.id)}">Anular</button>`}</div></td>
+    </tr>`).join("")
+    : `<tr><td colspan="7" class="empty">No hay cobros en este período</td></tr>`;
+  const vivos = lista.filter(p => !p.anulado);
+  $("cobTotales").textContent = `Total del período: ${fmtUsd(sumar(vivos, "montoUsd"))} ref. · ${fmtBs(sumar(vivos, "montoBs"))}`;
+}
+
+function mensajeCobranza(e, f) {
+  const c = cfg(), t = tasaVigente();
+  const meses = f.items.filter(i => i.concepto === "Mensualidad").map(i => nombreMes(i.periodo)).join(", ");
+  return `Estimado(a) representante de ${e.nombre}: desde ${c.nombre} le recordamos que tiene un saldo pendiente de ` +
+         `${fmtUsd(f.total)} (ref.)` + (t ? ` ≈ ${fmtBs(f.total * t)} a la tasa BCV de hoy` : "") +
+         (meses ? `. Meses: ${meses}` : "") + `. Gracias.`;
+}
+
+function renderPendientes() {
+  const q = $("penBuscar").value.trim().toLowerCase(), t = tasaVigente(), idx = indicePagos();
+  const filas = activos()
+    .map(e => ({ e, ...calcPendientes(e, idx) }))
+    .filter(f => f.total > 0 && (!q || (f.e.nombre || "").toLowerCase().includes(q) || (f.e.representante || "").toLowerCase().includes(q)))
+    .sort((a, b) => b.total - a.total);
+  $("tbodyPen").innerHTML = filas.length ? filas.map(f => {
+    const meses = f.items.filter(i => i.concepto === "Mensualidad");
+    const rec = round2(f.items.filter(i => i.concepto !== "Mensualidad").reduce((s, i) => s + i.pendiente, 0));
+    const venc = f.items.some(i => i.vencido);
+    const tel = normTel(f.e.telefono);
+    const wa = tel ? `https://wa.me/${tel}?text=${encodeURIComponent(mensajeCobranza(f.e, f))}` : "";
+    return `<tr>
+      <td><strong>${esc(f.e.nombre)}</strong><span class="bs">${esc(f.e.grado || "")}</span></td>
+      <td>${esc(f.e.representante)}<span class="bs">${esc(f.e.telefono || "")}</span></td>
+      <td>${meses.length} ${venc ? '<span class="tag bad">vencido</span>' : '<span class="tag">al día en fecha</span>'}</td>
+      <td class="num">${rec ? fmtUsd(rec) : "—"}</td>
+      <td class="num"><strong>${fmtUsd(f.total)}</strong><span class="bs">${t ? fmtBs(f.total * t) : ""}</span></td>
+      <td><div class="row-actions">
+        ${wa ? `<a class="btn sec" href="${esc(wa)}" target="_blank" rel="noopener" data-wa>WhatsApp</a>` : ""}
+        <button class="ok" data-cobrar="${esc(f.e.id)}">Cobrar</button>
+      </div></td></tr>`;
+  }).join("") : `<tr><td colspan="6" class="empty">No hay pendientes. ¡Todo al día!</td></tr>`;
+  const total = round2(filas.reduce((s, f) => s + f.total, 0));
+  $("penResumen").textContent = filas.length ? `${filas.length} estudiante(s) · ${fmtUsd(total)} por cobrar` + (t ? ` (${fmtBs(total * t)})` : "") : "";
+}
+
+function renderGastos() {
+  const mes = $("gasMes").value, q = $("gasBuscar").value.trim().toLowerCase();
+  const lista = gastos
+    .filter(g => (!mes || (g.fecha || "").startsWith(mes)) &&
+                 (!q || [g.descripcion, g.proveedor, g.categoria].some(x => (x || "").toLowerCase().includes(q))))
+    .sort((a, b) => (b.fecha || "").localeCompare(a.fecha || ""));
+  $("tbodyGas").innerHTML = lista.length ? lista.map(g => `
+    <tr class="${g.anulado ? "anulado" : ""}">
+      <td class="nw">${esc(g.fecha)}</td>
+      <td>${esc(g.categoria)}</td>
+      <td>${esc(g.descripcion)}<span class="bs">${esc(g.proveedor || "")}</span></td>
+      <td>${esc(g.metodo)}</td>
+      <td class="num">${fmtBs(g.montoBs)}<span class="bs">${fmtUsd(g.montoUsd)} ref.</span></td>
+      <td><div class="row-actions">${g.anulado ? '<span class="tag bad">Anulado</span>' :
+        `<button class="sec" data-edit-gasto="${esc(g.id)}">Editar</button><button class="danger" data-anular-gasto="${esc(g.id)}">Anular</button>`}</div></td>
+    </tr>`).join("")
+    : `<tr><td colspan="6" class="empty">No hay gastos en este período</td></tr>`;
+  const vivos = lista.filter(g => !g.anulado);
+  $("gasTotales").textContent = `Total del período: ${fmtBs(sumar(vivos, "montoBs"))} · ${fmtUsd(sumar(vivos, "montoUsd"))} ref.`;
+}
+
+/** Agrupa filas por clave y suma USD y Bs. */
+function agrupar(arr, keyFn) {
+  const m = new Map();
+  for (const x of arr) {
+    const k = keyFn(x) || "—";
+    const a = m.get(k) || { usd: 0, bs: 0 };
+    a.usd = round2(a.usd + (Number(x.montoUsd) || 0)); a.bs = round2(a.bs + (Number(x.montoBs) || 0));
+    m.set(k, a);
+  }
+  return [...m.entries()].sort((a, b) => b[1].bs - a[1].bs);
+}
+function movimientosMes(mes) {
+  const ing = delMes(pagos, mes).map(p => ({ fecha: p.fecha, tipo: "Ingreso", ref: "Recibo " + String(p.reciboNro ?? "").padStart(6, "0"),
+    detalle: `${p.estudianteNombre} — ${p.detalle || p.concepto}`, metodo: p.metodo, usd: Number(p.montoUsd) || 0, tasa: Number(p.tasa) || 0, bs: Number(p.montoBs) || 0 }));
+  const egr = delMes(gastos, mes).map(g => ({ fecha: g.fecha, tipo: "Egreso", ref: g.proveedor || "",
+    detalle: `${g.categoria} — ${g.descripcion}`, metodo: g.metodo, usd: Number(g.montoUsd) || 0, tasa: Number(g.tasa) || 0, bs: Number(g.montoBs) || 0 }));
+  return [...ing, ...egr].sort((a, b) => a.fecha.localeCompare(b.fecha) || a.tipo.localeCompare(b.tipo));
+}
+
+function renderReportes() {
+  const mes = $("repMes").value || mesActual();
+  const ing = delMes(pagos, mes), egr = delMes(gastos, mes);
+  const iBs = sumar(ing, "montoBs"), iUsd = sumar(ing, "montoUsd"), gBs = sumar(egr, "montoBs"), gUsd = sumar(egr, "montoUsd");
+  $("rIngBs").textContent = fmtBs(iBs);  $("rIngUsd").textContent = fmtUsd(iUsd) + " ref.";
+  $("rEgrBs").textContent = fmtBs(gBs);  $("rEgrUsd").textContent = fmtUsd(gUsd) + " ref.";
+  $("rSaldoBs").textContent = fmtBs(iBs - gBs);  $("rSaldoUsd").textContent = fmtUsd(iUsd - gUsd) + " ref.";
+  $("rSaldoCard").classList.toggle("good", iBs - gBs >= 0);
+  $("rSaldoCard").classList.toggle("bad", iBs - gBs < 0);
+  const fila = ([k, v]) => `<tr><td>${esc(k)}</td><td class="num">${fmtUsd(v.usd)}</td><td class="num">${fmtBs(v.bs)}</td></tr>`;
+  const vacio = `<tr><td colspan="3" class="empty">Sin datos</td></tr>`;
+  const gm = agrupar(ing, p => p.metodo), gc = agrupar(egr, g => g.categoria);
+  $("tbodyRepMet").innerHTML = gm.length ? gm.map(fila).join("") : vacio;
+  $("tbodyRepCat").innerHTML = gc.length ? gc.map(fila).join("") : vacio;
+  const movs = movimientosMes(mes);
+  $("tbodyRepMov").innerHTML = movs.length ? movs.map(m => `
+    <tr><td class="nw">${esc(m.fecha)}</td><td><span class="tag ${m.tipo === "Ingreso" ? "ok" : "bad"}">${m.tipo}</span></td>
+    <td>${esc(m.detalle)}</td><td>${esc(m.metodo)}</td>
+    <td class="num">${fmtUsd(m.usd)}</td><td class="num">${fmtBs(m.bs)}</td></tr>`).join("")
+    : `<tr><td colspan="6" class="empty">No hay movimientos en este mes</td></tr>`;
+}
+
+["buscar", "cobBuscar", "penBuscar", "gasBuscar", "verInactivos"].forEach(id => $(id).addEventListener("input", renderTodo));
+["cobMes", "gasMes", "repMes"].forEach(id => $(id).addEventListener("input", renderTodo));
+
+/* ================================================================
+   8) ESTUDIANTES
+   ================================================================ */
+function abrirEstudiante(id = null) {
+  editandoId = id;
+  const e = id ? estudiantes.find(x => x.id === id) : null;
+  $("modalEstTitulo").textContent = e ? "Editar estudiante" : "Nuevo estudiante";
+  $("eNombre").value = e?.nombre || "";
+  $("eCedula").value = e?.cedula || "";
+  $("eGrado").value = e?.grado || "";
+  $("eMensual").value = e?.mensualidad ?? "";
+  $("eRep").value = e?.representante || "";
+  $("eTel").value = e?.telefono || "";
+  $("eDesde").value = e?.desde || cfg().inicio;
+  mensualOrig = e ? Number(e.mensualidad) : null;
+  $("eAplica").value = mesActual(); $("wrapAplica").hidden = true;
+  $("modalEst").hidden = false;
+  $("eNombre").focus();
+}
+$("btnNuevoEst").addEventListener("click", () => abrirEstudiante());
+$("eMensual").addEventListener("input", () => {
+  $("wrapAplica").hidden = !(editandoId && mensualOrig !== null && Number($("eMensual").value) !== mensualOrig);
+});
+$("tbodyEst").addEventListener("click", async (ev) => {
+  const edit = ev.target.closest("[data-edit]"), del = ev.target.closest("[data-del]"), cob = ev.target.closest("[data-cobrar]"),
+        est = ev.target.closest("[data-estado]"), rea = ev.target.closest("[data-reactivar]");
+  if (edit) abrirEstudiante(edit.dataset.edit);
+  if (est) mostrarEstadoCuenta(est.dataset.estado);
+  if (rea) {
+    try { await updateDoc(doc(db, "estudiantes", rea.dataset.reactivar), { activo: true }); toast("Estudiante reactivado"); }
+    catch (err) { toast("No se pudo reactivar: " + (err.code || err.message)); }
+  }
+  if (cob) abrirCobro(cob.dataset.cobrar);
+  if (del) {
+    const e = estudiantes.find(x => x.id === del.dataset.del);
+    if (e && confirm(`¿Quitar a ${e.nombre}? Se conservará su historial de pagos.`)) {
+      await updateDoc(doc(db, "estudiantes", e.id), { activo: false });   // baja lógica
+      toast("Estudiante quitado");
+    }
+  }
+});
+$("formEst").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const monto = Number($("eMensual").value), desde = $("eDesde").value;
+  const e0 = editandoId ? estudiantes.find(x => x.id === editandoId) : null;
+  // Historial de tarifas: cambiar el precio no altera lo que ya se cobró en meses anteriores.
+  let tarifas = e0 && Array.isArray(e0.tarifas) && e0.tarifas.length ? e0.tarifas.map(t => ({ ...t })) : null;
+  if (!e0) tarifas = [{ desde, monto }];
+  else {
+    if (!tarifas) tarifas = [{ desde: e0.desde || cfg().inicio, monto: Number(e0.mensualidad) || 0 }];
+    if (monto !== Number(e0.mensualidad)) {
+      const ap = $("eAplica").value || mesActual();
+      tarifas = tarifas.filter(t => t.desde !== ap).concat([{ desde: ap, monto }]).sort((a, b) => a.desde.localeCompare(b.desde));
+    }
+  }
+  const datos = {
+    nombre: $("eNombre").value.trim(), cedula: $("eCedula").value.trim(), grado: $("eGrado").value.trim(),
+    mensualidad: monto, representante: $("eRep").value.trim(),
+    telefono: $("eTel").value.trim(), desde, tarifas, activo: true
+  };
+  try {
+    if (editandoId) await updateDoc(doc(db, "estudiantes", editandoId), datos);
+    else await addDoc(collection(db, "estudiantes"), { ...datos, creado: serverTimestamp() });
+    $("modalEst").hidden = true;
+    toast("Estudiante guardado");
+  } catch (err) { toast("Error al guardar: " + (err.code || err.message)); }
+});
+
+/* ================================================================
+   9) TASA BCV
+   ================================================================ */
+$("btnTasa").addEventListener("click", () => {
+  $("tValor").value = tasaVigente() || "";
+  $("tFecha").value = hoy();
+  $("modalTasa").hidden = false;
+  $("tValor").focus();
+});
+$("formTasa").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const fecha = $("tFecha").value;
+  try {
+    await setDoc(doc(db, "tasas", fecha), { fecha, valor: Number($("tValor").value) });
+    $("modalTasa").hidden = true;
+    toast("Tasa guardada");
+  } catch (err) { toast("Error al guardar la tasa: " + (err.code || err.message)); }
+});
+
+/* ================================================================
+   10) COBROS Y RECIBOS
+   ================================================================ */
+let cobroEst = null;
+let cobroItems = [];   // { concepto, periodo, detalle, pendiente, monto, sel, vencido }
+
+function abrirCobro(estId = null) {
+  $("cEstList").innerHTML = activos().map(e => `<option value="${esc(labelEst(e))}"></option>`).join("");
+  $("cEstInput").value = ""; cobroEst = null; cobroItems = [];
+  $("cOtroTxt").value = ""; $("cOtroMonto").value = ""; $("cRef").value = ""; $("cMetodo").selectedIndex = 0;
+  $("cFecha").value = hoy(); $("cTasa").value = tasaPara(hoy()) || "";
+  renderItemsCobro();
+  $("modalCobro").hidden = false;
+  if (estId) {
+    const e = estudiantes.find(x => x.id === estId);
+    if (e) { $("cEstInput").value = labelEst(e); elegirEstCobro(); }
+    $("cMetodo").focus();
+  } else $("cEstInput").focus();
+}
+function elegirEstCobro() {
+  const e = activos().find(x => labelEst(x) === $("cEstInput").value);
+  cobroEst = e || null;
+  cobroItems = e ? calcPendientes(e, indicePagos(), $("cFecha").value || hoy()).items
+                     .map(i => ({ ...i, monto: i.pendiente, sel: true })) : [];
+  renderItemsCobro();
+}
+function renderItemsCobro() {
+  $("cobroPend").hidden = !cobroEst;
+  $("cItems").innerHTML = cobroItems.length ? cobroItems.map((i, n) => `
+    <div class="item ${i.vencido ? "venc" : ""}">
+      <input type="checkbox" data-i="${n}" ${i.sel ? "checked" : ""} aria-label="${esc(i.detalle)}">
+      <div>${esc(i.detalle)}<div class="muted">Pendiente: ${fmtUsd(i.pendiente)}${i.vencido ? " · vencido" : ""}</div></div>
+      <input type="number" min="0" max="${i.pendiente}" step="0.01" value="${i.monto}" data-m="${n}" aria-label="Monto ${esc(i.detalle)}">
+    </div>`).join("")
+    : `<div class="muted">Este estudiante no tiene mensualidades pendientes. Puedes registrar otro concepto abajo.</div>`;
+  totalCobro();
+}
+function lineasCobro() {
+  const lines = cobroItems.filter(i => i.sel && Number(i.monto) > 0)
+    .map(i => ({ concepto: i.concepto, periodo: i.periodo, detalle: i.detalle, montoUsd: round2(i.monto) }));
+  const m = Number($("cOtroMonto").value) || 0;
+  if (m > 0) lines.push({ concepto: "Otro", periodo: "", detalle: $("cOtroTxt").value.trim(), montoUsd: round2(m) });
+  return lines;
+}
+function totalCobro() {
+  const usd = round2(lineasCobro().reduce((s, l) => s + l.montoUsd, 0));
+  $("cTotUsd").textContent = fmtUsd(usd);
+  $("cTotBs").textContent = fmtBs(usd * (Number($("cTasa").value) || 0));
+}
+$("cEstInput").addEventListener("input", elegirEstCobro);
+$("cFecha").addEventListener("change", () => { $("cTasa").value = tasaPara($("cFecha").value) || $("cTasa").value; elegirEstCobro(); });
+$("cTasa").addEventListener("input", totalCobro);
+$("cOtroMonto").addEventListener("input", totalCobro);
+$("cItems").addEventListener("input", (ev) => {
+  const c = ev.target.closest("[data-i]"), m = ev.target.closest("[data-m]");
+  if (c) cobroItems[+c.dataset.i].sel = c.checked;
+  if (m) cobroItems[+m.dataset.m].monto = Number(m.value) || 0;
+  totalCobro();
+});
+$("btnNuevoCobro").addEventListener("click", () => abrirCobro());
+$("tbodyPen").addEventListener("click", (ev) => { const b = ev.target.closest("[data-cobrar]"); if (b) abrirCobro(b.dataset.cobrar); });
+
+const siguienteRecibo = () => pagos.reduce((m, p) => Math.max(m, Number(p.reciboNro) || 0), 0) + 1;
+
+$("formCobro").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  if (!cobroEst) return toast("Elige un estudiante de la lista");
+  const tasa = Number($("cTasa").value);
+  if (!(tasa > 0)) return toast("Indica la tasa BCV");
+  if (Number($("cOtroMonto").value) > 0 && !$("cOtroTxt").value.trim()) return toast("Escribe el concepto del otro pago");
+  const lines = lineasCobro();
+  if (!lines.length) return toast("Selecciona al menos un concepto con monto");
+  const base = { estudianteId: cobroEst.id, estudianteNombre: cobroEst.nombre, grado: cobroEst.grado || "",
+    representante: cobroEst.representante || "", metodo: $("cMetodo").value, referencia: $("cRef").value.trim(),
+    fecha: $("cFecha").value, tasa, anulado: false };
+  const btn = $("btnGuardarCobro"); btn.disabled = true;
+  try {
+    // El número de recibo sale de un contador atómico: dos cajas a la vez no pueden repetirlo.
+    const respaldoNro = siguienteRecibo() - 1;
+    let creados = [];
+    await runTransaction(db, async (tx) => {
+      const cref = doc(db, "config", "contador");
+      const snap = await tx.get(cref);
+      const previo = snap.exists() && Number(snap.data().recibo) > 0 ? Number(snap.data().recibo) : respaldoNro;
+      const nro = previo + 1;
+      creados = lines.map(l => ({ ...base, ...l, reciboNro: nro, montoBs: round2(l.montoUsd * tasa) }));
+      tx.set(cref, { recibo: nro });
+      creados.forEach(p => tx.set(doc(collection(db, "pagos")), { ...p, creado: serverTimestamp() }));
+    });
+    $("modalCobro").hidden = true;
+    mostrarRecibo(creados, true);
+  } catch (err) { toast("No se pudo guardar el cobro: " + (err.code || err.message)); }
+  finally { btn.disabled = false; }
+});
+
+function mostrarRecibo(lines, siguiente = false) {
+  const p0 = lines[0], c = cfg();
+  const usd = sumar(lines, "montoUsd"), bs = sumar(lines, "montoBs");
+  $("reciboBox").innerHTML = `
+    <h3>${esc(c.nombre)}</h3>
+    <div class="sub">RECIBO DE PAGO Nº ${esc(String(p0.reciboNro).padStart(6, "0"))}</div>
+    <div class="meta">
+      <div><strong>Fecha:</strong> ${esc(p0.fecha)}</div>
+      <div><strong>Tasa BCV:</strong> ${fmtBs(p0.tasa)}</div>
+      <div><strong>Estudiante:</strong> ${esc(p0.estudianteNombre)}</div>
+      <div><strong>Grado:</strong> ${esc(p0.grado || "—")}</div>
+      <div><strong>Representante:</strong> ${esc(p0.representante || "—")}</div>
+      <div><strong>Método:</strong> ${esc(p0.metodo)}${p0.referencia ? " · Ref. " + esc(p0.referencia) : ""}</div>
+    </div>
+    <table>
+      <thead><tr><th>Concepto</th><th class="num">Ref. $</th><th class="num">Bs.</th></tr></thead>
+      <tbody>${lines.map(l => `<tr><td>${esc(l.detalle || l.concepto)}</td><td class="num">${fmtUsd(l.montoUsd)}</td><td class="num">${fmtBs(l.montoBs)}</td></tr>`).join("")}
+        <tr class="tot"><td>TOTAL</td><td class="num">${fmtUsd(usd)}</td><td class="num">${fmtBs(bs)}</td></tr></tbody>
+    </table>
+    <p class="muted" style="margin-top:14px">Monto en bolívares calculado a la tasa BCV del día. Gracias por su pago.</p>`;
+  $("btnSiguiente").hidden = !siguiente;
+  $("modalRecibo").hidden = false;
+}
+
+/** Estado de cuenta de un estudiante: pagos realizados y pendientes a hoy (se puede imprimir). */
+function mostrarEstadoCuenta(id) {
+  const e = estudiantes.find(x => x.id === id);
+  if (!e) return;
+  const c = cfg(), t = tasaVigente(), f = calcPendientes(e, indicePagos());
+  const pagados = pagos.filter(p => p.estudianteId === id && !p.anulado)
+    .sort((a, b) => (a.fecha || "").localeCompare(b.fecha || "") || (a.reciboNro || 0) - (b.reciboNro || 0));
+  $("reciboBox").innerHTML = `
+    <h3>${esc(c.nombre)}</h3>
+    <div class="sub">ESTADO DE CUENTA · ${esc(hoy())}</div>
+    <div class="meta">
+      <div><strong>Estudiante:</strong> ${esc(e.nombre)}</div>
+      <div><strong>Cédula:</strong> ${esc(e.cedula || "—")}</div>
+      <div><strong>Grado:</strong> ${esc(e.grado || "—")}</div>
+      <div><strong>Representante:</strong> ${esc(e.representante || "—")}</div>
+      <div><strong>Mensualidad actual:</strong> ${fmtUsd(e.mensualidad)}</div>
+      <div><strong>Tasa BCV de hoy:</strong> ${t ? fmtBs(t) : "—"}</div>
+    </div>
+    <h4 style="margin:14px 0 4px">Pagos realizados</h4>
+    <table>
+      <thead><tr><th>Recibo</th><th>Fecha</th><th>Concepto</th><th class="num">Ref. $</th><th class="num">Bs.</th></tr></thead>
+      <tbody>${pagados.length ? pagados.map(p => `<tr><td>${esc(String(p.reciboNro ?? "").padStart(6, "0"))}</td><td class="nw">${esc(p.fecha)}</td><td>${esc(p.detalle || p.concepto)}</td><td class="num">${fmtUsd(p.montoUsd)}</td><td class="num">${fmtBs(p.montoBs)}</td></tr>`).join("")
+        : `<tr><td colspan="5" class="muted">Sin pagos registrados</td></tr>`}
+        <tr class="tot"><td colspan="3">TOTAL PAGADO</td><td class="num">${fmtUsd(sumar(pagados, "montoUsd"))}</td><td class="num">${fmtBs(sumar(pagados, "montoBs"))}</td></tr></tbody>
+    </table>
+    <h4 style="margin:14px 0 4px">Pendiente a hoy</h4>
+    <table>
+      <thead><tr><th>Concepto</th><th class="num">Ref. $</th><th class="num">Bs. (tasa de hoy)</th></tr></thead>
+      <tbody>${f.items.length ? f.items.map(i => `<tr><td>${esc(i.detalle)}${i.vencido ? " (vencido)" : ""}</td><td class="num">${fmtUsd(i.pendiente)}</td><td class="num">${t ? fmtBs(i.pendiente * t) : "—"}</td></tr>`).join("")
+        : `<tr><td colspan="3" class="muted">Al día, sin pendientes</td></tr>`}
+        <tr class="tot"><td>TOTAL PENDIENTE</td><td class="num">${fmtUsd(f.total)}</td><td class="num">${t ? fmtBs(f.total * t) : "—"}</td></tr></tbody>
+    </table>`;
+  $("btnSiguiente").hidden = true;
+  $("modalRecibo").hidden = false;
+}
+function imprimir(clase) {
+  if (clase) document.body.classList.add(clase);
+  window.addEventListener("afterprint", () => document.body.classList.remove("print-recibo"), { once: true });
+  window.print();
+}
+$("btnImprimirRecibo").addEventListener("click", () => imprimir("print-recibo"));
+$("btnImprimirRep").addEventListener("click", () => imprimir());
+$("btnSiguiente").addEventListener("click", () => { $("modalRecibo").hidden = true; abrirCobro(); });
+
+$("tbodyCob").addEventListener("click", async (ev) => {
+  const rec = ev.target.closest("[data-recibo]"), an = ev.target.closest("[data-anular-pago]");
+  if (rec) {
+    const grupo = pagos.filter(p => String(p.reciboNro) === rec.dataset.recibo && !p.anulado);
+    if (grupo.length) mostrarRecibo(grupo);
+  }
+  if (an) {
+    const p = pagos.find(x => x.id === an.dataset.anularPago);
+    if (p && confirm(`¿Anular el pago de ${fmtUsd(p.montoUsd)} (${p.detalle || p.concepto}) de ${p.estudianteNombre}?`)) {
+      try { await updateDoc(doc(db, "pagos", p.id), { anulado: true, anuladoEn: hoy() }); toast("Pago anulado"); }
+      catch (err) { toast("No se pudo anular: " + (err.code || err.message)); }
+    }
+  }
+});
+
+/* ================================================================
+   11) GASTOS
+   ================================================================ */
+function abrirGasto(id = null) {
+  gastoEditId = id;
+  const g = id ? gastos.find(x => x.id === id) : null;
+  $("modalGastoTitulo").textContent = g ? "Editar gasto" : "Nuevo gasto";
+  $("gFecha").value = g?.fecha || hoy(); $("gCat").value = g?.categoria || ""; $("gDesc").value = g?.descripcion || ""; $("gProv").value = g?.proveedor || "";
+  $("gMetodo").value = g?.metodo || $("gMetodo").options[0].value;
+  $("gMoneda").value = g ? (g.moneda || "USD") : "USD";
+  $("gMonto").value = g ? (g.montoOrig ?? g.montoUsd) : "";
+  $("gTasa").value = g ? g.tasa : (tasaPara(hoy()) || "");
+  eqGasto();
+  $("modalGasto").hidden = false;
+  $("gFecha").focus();
+}
+function montosGasto() {
+  const m = Number($("gMonto").value) || 0, t = Number($("gTasa").value) || 0;
+  if ($("gMoneda").value === "USD") return { usd: round2(m), bs: round2(m * t) };
+  return { usd: t > 0 ? round2(m / t) : 0, bs: round2(m) };
+}
+function eqGasto() { const q = montosGasto(); $("gEqUsd").textContent = fmtUsd(q.usd); $("gEqBs").textContent = fmtBs(q.bs); }
+["gMonto", "gMoneda", "gTasa"].forEach(id => $(id).addEventListener("input", eqGasto));
+$("gFecha").addEventListener("change", () => { $("gTasa").value = tasaPara($("gFecha").value) || $("gTasa").value; eqGasto(); });
+$("btnNuevoGasto").addEventListener("click", () => abrirGasto());
+$("formGasto").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const tasa = Number($("gTasa").value);
+  if (!(tasa > 0)) return toast("Indica la tasa BCV");
+  const q = montosGasto();
+  if (!(q.bs > 0)) return toast("Indica un monto mayor a cero");
+  try {
+    const datos = {
+      fecha: $("gFecha").value, categoria: $("gCat").value.trim(), descripcion: $("gDesc").value.trim(),
+      proveedor: $("gProv").value.trim(), metodo: $("gMetodo").value, tasa,
+      moneda: $("gMoneda").value, montoOrig: Number($("gMonto").value), montoUsd: q.usd, montoBs: q.bs
+    };
+    if (gastoEditId) await updateDoc(doc(db, "gastos", gastoEditId), { ...datos, editado: hoy() });
+    else await addDoc(collection(db, "gastos"), { ...datos, anulado: false, creado: serverTimestamp() });
+    $("modalGasto").hidden = true;
+    toast("Gasto guardado");
+  } catch (err) { toast("Error al guardar el gasto: " + (err.code || err.message)); }
+});
+$("tbodyGas").addEventListener("click", async (ev) => {
+  const ed = ev.target.closest("[data-edit-gasto]");
+  if (ed) return abrirGasto(ed.dataset.editGasto);
+  const an = ev.target.closest("[data-anular-gasto]");
+  if (!an) return;
+  const g = gastos.find(x => x.id === an.dataset.anularGasto);
+  if (g && confirm(`¿Anular el gasto "${g.descripcion}" por ${fmtBs(g.montoBs)}?`)) {
+    try { await updateDoc(doc(db, "gastos", g.id), { anulado: true, anuladoEn: hoy() }); toast("Gasto anulado"); }
+    catch (err) { toast("No se pudo anular: " + (err.code || err.message)); }
+  }
+});
+
+/* ================================================================
+   12) REPORTE CSV PARA EL CONTADOR (Bs. con referencia en $)
+   ================================================================ */
+const csvNum = (n) => (Number(n) || 0).toFixed(2).replace(".", ",");
+const csvTxt = (s) => { s = String(s ?? ""); return /[;"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+function construirCsv(meses) {
+  const movs = meses.flatMap(m => movimientosMes(m)).sort((a, b) => a.fecha.localeCompare(b.fecha) || a.tipo.localeCompare(b.tipo));
+  const rows = [["Fecha", "Tipo", "Referencia", "Detalle", "Método", "Monto ref. USD", "Tasa BCV", "Monto Bs."]];
+  for (const m of movs) rows.push([m.fecha, m.tipo, m.ref, m.detalle, m.metodo, csvNum(m.usd), csvNum(m.tasa), csvNum(m.bs)]);
+  const ing = movs.filter(m => m.tipo === "Ingreso"), egr = movs.filter(m => m.tipo === "Egreso");
+  const s = (a, k) => a.reduce((t, x) => t + x[k], 0);
+  rows.push([]);
+  rows.push(["", "TOTAL INGRESOS", "", "", "", csvNum(s(ing, "usd")), "", csvNum(s(ing, "bs"))]);
+  rows.push(["", "TOTAL EGRESOS", "", "", "", csvNum(s(egr, "usd")), "", csvNum(s(egr, "bs"))]);
+  rows.push(["", "SALDO", "", "", "", csvNum(s(ing, "usd") - s(egr, "usd")), "", csvNum(s(ing, "bs") - s(egr, "bs"))]);
+  return "﻿" + rows.map(r => r.map(csvTxt).join(";")).join("\r\n");
+}
+$("btnCsv").addEventListener("click", () => {
+  const mes = $("repMes").value || mesActual();
+  const blob = new Blob([construirCsv([mes])], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `flujo-de-caja-${mes}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+});
+
+/* ================================================================
+   13) CONFIGURACIÓN
+   ================================================================ */
+function llenarConfig() {
+  const c = cfg();
+  $("cfgNombre").value = c.nombre; $("cfgInicio").value = c.inicio; $("cfgFin").value = c.fin;
+  $("cfgDia").value = c.diaLimite; $("cfgRecActivo").checked = c.recargoActivo; $("cfgRecUsd").value = c.recargoUsd || "";
+}
+$("formConfig").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  if ($("cfgFin").value < $("cfgInicio").value) return toast("El último mes no puede ser anterior al primero");
+  const rec = Number($("cfgRecUsd").value) || 0;
+  if ($("cfgRecActivo").checked && !(rec > 0)) return toast("Indica el monto del recargo");
+  try {
+    await setDoc(doc(db, "config", "general"), {
+      nombre: $("cfgNombre").value.trim(), inicio: $("cfgInicio").value, fin: $("cfgFin").value,
+      diaLimite: Number($("cfgDia").value), recargoActivo: $("cfgRecActivo").checked, recargoUsd: rec
+    }, { merge: true });
+    toast("Configuración guardada");
+  } catch (err) { toast("Error al guardar: " + (err.code || err.message)); }
+});
+
+/* ================================================================
+   14) RESUMEN DEL AÑO, AÑO ESCOLAR NUEVO Y RESPALDO
+   ================================================================ */
+function descargar(nombre, contenido, tipo) {
+  const blob = new Blob([contenido], { type: tipo });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = nombre;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+$("btnCsvAnio").addEventListener("click", () => {
+  const c = cfg();
+  descargar(`flujo-de-caja-${c.inicio}-a-${c.fin}.csv`, construirCsv(mesesEntre(c.inicio, c.fin)), "text/csv;charset=utf-8");
+});
+
+function renderResumenAnio() {
+  const c = cfg();
+  const tope = mesActual() < c.fin ? mesActual() : c.fin;
+  const meses = tope >= c.inicio ? mesesEntre(c.inicio, tope) : [];
+  if (!meses.length) { $("tbodyRepAnio").innerHTML = `<tr><td colspan="6" class="empty">El año escolar aún no comienza</td></tr>`; return; }
+  const T = { iBs: 0, iUsd: 0, gBs: 0, gUsd: 0 };
+  const filas = meses.map(m => {
+    const ing = delMes(pagos, m), egr = delMes(gastos, m);
+    const iBs = sumar(ing, "montoBs"), iUsd = sumar(ing, "montoUsd"), gBs = sumar(egr, "montoBs"), gUsd = sumar(egr, "montoUsd");
+    T.iBs += iBs; T.iUsd += iUsd; T.gBs += gBs; T.gUsd += gUsd;
+    return `<tr><td>${esc(nombreMes(m))}</td><td class="num">${fmtBs(iBs)}</td><td class="num">${fmtUsd(iUsd)}</td>
+      <td class="num">${fmtBs(gBs)}</td><td class="num">${fmtUsd(gUsd)}</td><td class="num">${fmtBs(iBs - gBs)}</td></tr>`;
+  });
+  filas.push(`<tr class="tot"><td><strong>Total</strong></td><td class="num"><strong>${fmtBs(round2(T.iBs))}</strong></td><td class="num"><strong>${fmtUsd(round2(T.iUsd))}</strong></td>
+    <td class="num"><strong>${fmtBs(round2(T.gBs))}</strong></td><td class="num"><strong>${fmtUsd(round2(T.gUsd))}</strong></td><td class="num"><strong>${fmtBs(round2(T.iBs - T.gBs))}</strong></td></tr>`);
+  $("tbodyRepAnio").innerHTML = filas.join("");
+}
+
+function renderAnios() {
+  $("tbodyAnios").innerHTML = anios.length ? anios.map(a => `<tr><td>${esc(a.inicio)} → ${esc(a.fin)}</td><td>${esc(a.cerrado)}</td>
+    <td class="num">${fmtUsd(a.ingresosUsd)}</td><td class="num">${fmtUsd(a.egresosUsd)}</td><td class="num">${fmtUsd(a.deudaUsd)}</td></tr>`).join("")
+    : `<tr><td colspan="5" class="empty">Aún no se ha cerrado ningún año</td></tr>`;
+}
+
+$("btnNuevoAnio").addEventListener("click", async () => {
+  const c = cfg();
+  if (anios.some(a => a.inicio === c.inicio)) return toast("Ese año escolar ya fue cerrado");
+  const ni = `${+c.inicio.slice(0, 4) + 1}${c.inicio.slice(4)}`, nf = `${+c.fin.slice(0, 4) + 1}${c.fin.slice(4)}`;
+  const enAnio = (x) => !x.anulado && (x.fecha || "").slice(0, 7) >= c.inicio && (x.fecha || "").slice(0, 7) <= c.fin;
+  const ing = pagos.filter(enAnio), egr = gastos.filter(enAnio);
+  const idx = indicePagos();
+  const deuda = round2(activos().reduce((s, e) => s + calcPendientes(e, idx, `${c.fin}-28`).total, 0));
+  if (!confirm(`¿Cerrar el año ${c.inicio} → ${c.fin} e iniciar ${ni} → ${nf}?\n\n` +
+               `Quedan sin cobrar ${fmtUsd(deuda)} del año que cierra (se guardan en el archivo del año).\n` +
+               `Se conserva todo el historial y los mismos estudiantes.`)) return;
+  try {
+    const b = writeBatch(db);
+    b.set(doc(db, "anios", c.inicio), {
+      inicio: c.inicio, fin: c.fin, cerrado: hoy(), estudiantes: activos().length,
+      ingresosUsd: sumar(ing, "montoUsd"), ingresosBs: sumar(ing, "montoBs"),
+      egresosUsd: sumar(egr, "montoUsd"), egresosBs: sumar(egr, "montoBs"), deudaUsd: deuda
+    });
+    b.set(doc(db, "config", "general"), { inicio: ni, fin: nf }, { merge: true });
+    await b.commit();
+    llenarConfig();
+    toast(`Año nuevo iniciado: ${ni} → ${nf}`);
+  } catch (err) { toast("No se pudo cerrar el año: " + (err.code || err.message)); }
+});
+
+$("btnRespaldo").addEventListener("click", () => {
+  const datos = { exportado: new Date().toISOString(), config, tasas, estudiantes, pagos, gastos, anios };
+  descargar(`respaldo-${hoy()}.json`, JSON.stringify(datos, null, 2), "application/json");
+});
+</script>
+</body>
+</html>
